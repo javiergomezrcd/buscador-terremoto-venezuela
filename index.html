@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Terremoto Venezuela 2026 — Buscar personas en hospitales</title>
+<meta name="description" content="Buscador de pacientes ingresados tras el terremoto de Venezuela y enlaces oficiales para reportar y buscar desaparecidos."/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#0f172a;color:#e2e8f0;line-height:1.55}
+  header{background:linear-gradient(135deg,#1e3a8a,#0e7490);padding:30px 20px;text-align:center}
+  header h1{font-size:1.5rem;font-weight:800}
+  header p{opacity:.9;margin-top:6px;font-size:.92rem}
+  .wrap{max-width:900px;margin:0 auto;padding:20px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:18px 0}
+  .kpi{background:#1e293b;border-radius:14px;padding:16px;text-align:center;border:1px solid #334155}
+  .kpi .n{font-size:1.8rem;font-weight:800;color:#fff}
+  .kpi .l{font-size:.78rem;opacity:.8;margin-top:4px}
+  .kpi.alerta .n{color:#f87171}.kpi.ok .n{color:#34d399}.kpi.live{border-color:#0e7490}
+  .card{background:#1e293b;border-radius:14px;padding:20px;margin:18px 0;border:1px solid #334155}
+  .card h2{font-size:1.12rem;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .dot{width:9px;height:9px;border-radius:50%;background:#34d399;display:inline-block;animation:p 1.6s infinite}
+  @keyframes p{0%,100%{opacity:1}50%{opacity:.3}}
+  input{width:100%;padding:14px 16px;font-size:1.05rem;border-radius:10px;border:1px solid #475569;background:#0f172a;color:#fff}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:.92rem}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid #334155}
+  th{color:#94a3b8;font-weight:600;font-size:.76rem;text-transform:uppercase}
+  tr:hover td{background:#243045}
+  .scroll{max-height:460px;overflow:auto;border-radius:10px}
+  .muted{opacity:.65;font-size:.85rem}
+  .aviso{background:#422006;border:1px solid #a16207;color:#fde68a;padding:12px 16px;border-radius:10px;font-size:.85rem;margin:14px 0}
+  a.src{display:block;background:#0f172a;border:1px solid #334155;border-radius:10px;padding:12px 14px;margin:8px 0;color:#7dd3fc;text-decoration:none}
+  a.src:hover{border-color:#0e7490}
+  a.src b{color:#fff} a.src span{color:#94a3b8;font-size:.82rem}
+  footer{text-align:center;padding:24px;opacity:.6;font-size:.8rem}
+</style>
+</head>
+<body>
+<header>
+  <h1>Terremoto Venezuela 2026 — Buscar personas en hospitales</h1>
+  <p>Iniciativa de ayuda · datos del registro oficial de pacientes</p>
+</header>
+<div class="wrap">
+
+  <div class="kpis">
+    <div class="kpi"><div class="n" id="k-desap">—</div><div class="l">Reportes de desaparecidos</div></div>
+    <div class="kpi alerta"><div class="n" id="k-sc">—</div><div class="l">Sin contacto</div></div>
+    <div class="kpi ok"><div class="n" id="k-loc">—</div><div class="l">Localizados</div></div>
+    <div class="kpi live"><div class="n" id="k-pac">…</div><div class="l">Pacientes en hospital (vivo)</div></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span> ¿Está esta persona en un hospital?</h2>
+    <input id="q" placeholder="Escribe nombre o apellido…" autocomplete="off"/>
+    <div id="res" class="scroll"></div>
+    <p class="muted" id="info" style="margin-top:8px"></p>
+    <div class="aviso">Si la encuentras, contacta directamente con ese hospital para confirmar. Esta búsqueda refleja el registro oficial de pacientes.</div>
+  </div>
+
+  <div class="card">
+    <h2>📢 Reportar o buscar desaparecidos (canales oficiales)</h2>
+    <a class="src" href="https://desaparecidosterremotovenezuela.com" target="_blank" rel="noopener"><b>Desaparecidos Terremoto Venezuela</b><br><span>Reportar y buscar personas desaparecidas</span></a>
+    <a class="src" href="https://venezuelatebusca.com" target="_blank" rel="noopener"><b>Venezuela Te Busca</b><br><span>Registro de desaparecidos</span></a>
+    <a class="src" href="https://registro-pacientes-sismo-vzla.pages.dev" target="_blank" rel="noopener"><b>Registro de Pacientes (oficial)</b><br><span>Buscador de pacientes ingresados</span></a>
+    <a class="src" href="https://familylinks.icrc.org" target="_blank" rel="noopener"><b>Cruz Roja — Restablecimiento del contacto familiar</b><br><span>Reunificación de familias</span></a>
+    <a class="src" href="https://google.org/personfinder/global/home.html" target="_blank" rel="noopener"><b>Google Person Finder</b><br><span>Base internacional de personas</span></a>
+  </div>
+
+</div>
+<footer>Datos de pacientes: registro oficial. Esta página solo facilita la búsqueda y enlaza a los canales oficiales. No difunde datos de contacto.</footer>
+
+<script>
+const D = {"total": 48620, "sinContacto": 43332, "localizados": 5288, "supaUrl": "https://ghswopasaynslycpaldj.supabase.co/rest/v1", "supaKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdoc3dvcGFzYXluc2x5Y3BhbGRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0MDU0MDcsImV4cCI6MjA5Nzk4MTQwN30.MifuBb6C54KQdhuv_4gMoNAGJl997ycU299OcFeoyzU"};
+let PAC = [];
+function norm(s){return (s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperCase();}
+function setN(id,v){document.getElementById(id).textContent=(v??0).toLocaleString("es-ES");}
+setN("k-desap",D.total);setN("k-sc",D.sinContacto);setN("k-loc",D.localizados);
+
+async function cargar(){
+  try{
+    const r=await fetch(`${D.supaUrl}/pacientes?select=nombre,apellido,hospital,estado,edad&deleted_at=is.null&limit=5000`,
+      {headers:{apikey:D.supaKey,Authorization:"Bearer "+D.supaKey}});
+    PAC=await r.json(); setN("k-pac",PAC.length);
+    document.getElementById("info").textContent=`${PAC.length} pacientes · actualizado ${new Date().toLocaleTimeString("es-ES")}`;
+    buscar();
+  }catch(e){document.getElementById("info").textContent="No se pudo conectar al registro en vivo.";}
+}
+function buscar(){
+  const q=norm(document.getElementById("q").value.trim());const res=document.getElementById("res");
+  if(!q){res.innerHTML="";return;}
+  const h=PAC.filter(p=>norm((p.apellido||"")+" "+(p.nombre||"")).includes(q)).slice(0,200);
+  if(!h.length){res.innerHTML=`<p class="muted" style="padding:12px">Sin resultados. Puede no estar en ningún hospital del registro.</p>`;return;}
+  res.innerHTML=`<table><thead><tr><th>Paciente</th><th>Hospital</th><th>Estado</th><th>Edad</th></tr></thead><tbody>`+
+    h.map(p=>`<tr><td><b>${(p.apellido||"")} ${(p.nombre||"")}</b></td><td>${p.hospital||""}</td><td>${p.estado||""}</td><td>${p.edad||""}</td></tr>`).join("")+`</tbody></table>`;
+}
+document.getElementById("q").addEventListener("input",buscar);
+cargar();setInterval(cargar,60000);
+</script>
+</body>
+</html>
