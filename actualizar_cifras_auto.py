@@ -9,9 +9,11 @@ import argparse
 import datetime as dt
 import json
 import os
+import re
 import ssl
 import sys
 import urllib.request
+import unicodedata
 from zoneinfo import ZoneInfo
 
 
@@ -30,7 +32,27 @@ def _int(value, name):
     return n
 
 
+def _count(text, label):
+    normalized = unicodedata.normalize("NFD", text)
+    normalized = "".join(ch for ch in normalized if unicodedata.category(ch) != "Mn").lower()
+    match = re.search(r"(\d[\d., ]*)\s+" + re.escape(label), normalized)
+    if not match:
+        raise ValueError(f"no encontre {label}")
+    return int(re.sub(r"\D", "", match.group(1)))
+
+
 def normalizar(payload):
+    if isinstance(payload, str):
+        return {
+            "desaparecidos": _count(payload, "personas reportadas"),
+            "sinContacto": _count(payload, "aun sin contacto"),
+            "localizados": _count(payload, "localizados"),
+        }
+    if isinstance(payload, dict) and isinstance(payload.get("data"), dict):
+        content = payload["data"].get("content")
+        if isinstance(content, str):
+            return normalizar(content)
+
     raw = payload.get("counts", payload) if isinstance(payload, dict) else {}
     total = raw.get("total", raw.get("desaparecidos", raw.get("reportadas")))
     sin_contacto = raw.get("sinContacto", raw.get("sin_contacto"))
@@ -60,7 +82,11 @@ def fetch_json(url):
 
     req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=30, context=ssl.create_default_context()) as r:
-        return json.loads(r.read().decode("utf-8"))
+        body = r.read().decode("utf-8")
+    try:
+        return json.loads(body)
+    except json.JSONDecodeError:
+        return body
 
 
 def fetch_vercel_json(url):
@@ -105,6 +131,13 @@ def self_check():
     }
     sample2 = {"counts": {"desaparecidos": "10", "sinContacto": "7", "localizados": "3"}}
     assert normalizar(sample2)["desaparecidos"] == 10
+    text = "57218 Personas reportadas\n\n49497 Aun sin contacto\n\n7721 Localizados"
+    assert normalizar(text) == {
+        "desaparecidos": 57218,
+        "sinContacto": 49497,
+        "localizados": 7721,
+    }
+    assert normalizar({"data": {"content": text}})["localizados"] == 7721
     try:
         normalizar({"total": 10, "sinContacto": 8, "localizado": 1})
     except ValueError:

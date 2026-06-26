@@ -4,7 +4,26 @@ function parseIntStrict(value, name) {
   return n;
 }
 
+function parseCount(text, label) {
+  const normalized = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const match = normalized.match(new RegExp(`(\\d[\\d., ]*)\\s+${label}`));
+  if (!match) throw new Error(`no encontre ${label}`);
+  return Number(match[1].replace(/\D/g, ""));
+}
+
 function normalizar(payload) {
+  if (typeof payload === "string") {
+    return {
+      total: parseCount(payload, "personas reportadas"),
+      sinContacto: parseCount(payload, "aun sin contacto"),
+      localizado: parseCount(payload, "localizados"),
+    };
+  }
+
+  if (payload?.data?.content && typeof payload.data.content === "string") {
+    return normalizar(payload.data.content);
+  }
+
   const raw = payload && typeof payload === "object" ? payload.counts || payload : {};
   const total = raw.total ?? raw.desaparecidos ?? raw.reportadas;
   const sinContacto = raw.sinContacto ?? raw.sin_contacto;
@@ -45,7 +64,14 @@ async function handler(req, res) {
     const r = await fetch(process.env.STATS_URL, { headers, cache: "no-store" });
     if (!r.ok) return res.status(502).json({ error: `fuente devolvio ${r.status}` });
 
-    const cifras = normalizar(await r.json());
+    const body = await r.text();
+    let payload = body;
+    try {
+      payload = JSON.parse(body);
+    } catch {
+      // ponytail: r.jina.ai entrega markdown; si el dev da JSON, usamos JSON.
+    }
+    const cifras = normalizar(payload);
     return res.status(200).json(cifras);
   } catch (error) {
     console.error(error);
@@ -60,6 +86,11 @@ if (require.main === module) {
   const sample = { total: 57164, sinContacto: 49475, localizado: 7689 };
   const out = normalizar(sample);
   console.assert(out.total === 57164 && out.localizado === 7689, "normaliza formato API");
+  const text = "57218 Personas reportadas\n\n49497 Aun sin contacto\n\n7721 Localizados";
+  const outText = normalizar(text);
+  console.assert(outText.total === 57218 && outText.sinContacto === 49497, "normaliza texto");
+  const outJina = normalizar({ data: { content: text } });
+  console.assert(outJina.total === 57218 && outJina.localizado === 7721, "normaliza jina");
   try {
     normalizar({ total: 10, sinContacto: 8, localizado: 1 });
     throw new Error("debe rechazar cifras inconsistentes");
