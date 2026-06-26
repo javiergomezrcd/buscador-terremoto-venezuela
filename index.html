@@ -105,9 +105,12 @@ function pintarCifras(c){
     "Cifras de desaparecidos: "+c.actualizado+(c.fuente?" · fuente: "+c.fuente:"");}
 }
 async function cargarCifras(){
+  const ctrl=new AbortController();
+  const timeout=setTimeout(()=>ctrl.abort(),15000);
   try{
     document.getElementById("cifras-upd").textContent="Cargando cifras de desaparecidos...";
-    const r=await fetch(CIFRAS_LIVE_URL);
+    const r=await fetch(CIFRAS_LIVE_URL,{signal:ctrl.signal});
+    if(!r.ok){throw new Error("HTTP "+r.status);}
     const body=await r.text();
     let raw=body;
     try{raw=JSON.parse(body);}catch(e){}
@@ -116,6 +119,8 @@ async function cargarCifras(){
     throw new Error("cifras incompletas");
   }catch(e){
     document.getElementById("cifras-upd").textContent="No se pudieron cargar las cifras en vivo. Reintentando...";
+  }finally{
+    clearTimeout(timeout);
   }
 }
 cargarCifras();
@@ -123,10 +128,18 @@ setInterval(cargarCifras,300000);
 
 async function cargar(){
   try{
-    const r=await fetch(`${D.supaUrl}/pacientes?select=nombre,apellido,hospital,estado,edad&deleted_at=is.null&limit=5000`,
-      {headers:{apikey:D.supaKey,Authorization:"Bearer "+D.supaKey}});
-    PAC=await r.json(); setN("k-pac",PAC.length);
-    document.getElementById("info").textContent=`${PAC.length} pacientes · actualizado ${new Date().toLocaleTimeString("es-ES")}`;
+    document.getElementById("info").textContent="Cargando pacientes...";
+    const page=1000, all=[];
+    for(let offset=0;;offset+=page){
+      const r=await fetch(`${D.supaUrl}/pacientes?select=nombre,apellido,hospital,estado,edad&deleted_at=is.null&limit=${page}&offset=${offset}`,
+        {headers:{apikey:D.supaKey,Authorization:"Bearer "+D.supaKey}});
+      if(!r.ok){throw new Error("HTTP "+r.status);}
+      const chunk=await r.json();
+      all.push(...chunk);
+      if(chunk.length<page){break;}
+    }
+    PAC=all; setN("k-pac",PAC.length);
+    document.getElementById("info").textContent=`${PAC.length} pacientes activos · actualizado ${new Date().toLocaleTimeString("es-ES")}`;
     buscar();
   }catch(e){document.getElementById("info").textContent="No se pudo conectar al registro en vivo.";}
 }
