@@ -43,11 +43,11 @@ def _count(text, label):
 
 def normalizar(payload):
     if isinstance(payload, str):
-        return {
+        return validar({
             "desaparecidos": _count(payload, "personas reportadas"),
             "sinContacto": _count(payload, "aun sin contacto"),
             "localizados": _count(payload, "localizados"),
-        }
+        })
     if isinstance(payload, dict) and isinstance(payload.get("data"), dict):
         content = payload["data"].get("content")
         if isinstance(content, str):
@@ -63,6 +63,12 @@ def normalizar(payload):
         "sinContacto": _int(sin_contacto, "sinContacto"),
         "localizados": _int(localizados, "localizados"),
     }
+    return validar(cifras)
+
+
+def validar(cifras):
+    if cifras["desaparecidos"] <= 0:
+        raise ValueError("cifras en cero")
     if cifras["sinContacto"] + cifras["localizados"] != cifras["desaparecidos"]:
         # ponytail: contrato actual de 3 estados. Si aparece otro estado, ampliar aqui.
         raise ValueError("sinContacto + localizados debe igualar desaparecidos")
@@ -138,6 +144,12 @@ def self_check():
         "localizados": 7721,
     }
     assert normalizar({"data": {"content": text}})["localizados"] == 7721
+    try:
+        normalizar("0 Personas reportadas\n\n0 Aun sin contacto\n\n0 Localizados")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("debe rechazar cifras en cero")
     try:
         normalizar({"total": 10, "sinContacto": 8, "localizado": 1})
     except ValueError:

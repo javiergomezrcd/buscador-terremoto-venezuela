@@ -2,10 +2,6 @@ const { normalizar } = require("./cifras.js");
 
 const DEFAULT_SOURCE = "https://r.jina.ai/https://desaparecidosterremotovenezuela.com/";
 
-function freshUrl(url) {
-  return `${url}${url.includes("?") ? "&" : "?"}_=${Date.now()}`;
-}
-
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
@@ -21,7 +17,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const r = await fetch(freshUrl(process.env.STATS_URL || DEFAULT_SOURCE), {
+    const r = await fetch(process.env.STATS_URL || DEFAULT_SOURCE, {
       headers: { Accept: "application/json", "User-Agent": "cifras-public/1.0" },
       cache: "no-store",
     });

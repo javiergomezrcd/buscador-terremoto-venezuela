@@ -4,10 +4,6 @@ function parseIntStrict(value, name) {
   return n;
 }
 
-function freshUrl(url) {
-  return `${url}${url.includes("?") ? "&" : "?"}_=${Date.now()}`;
-}
-
 function parseCount(text, label) {
   const normalized = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const match = normalized.match(new RegExp(`(\\d[\\d., ]*)\\s+${label}`));
@@ -17,11 +13,11 @@ function parseCount(text, label) {
 
 function normalizar(payload) {
   if (typeof payload === "string") {
-    return {
+    return validar({
       total: parseCount(payload, "personas reportadas"),
       sinContacto: parseCount(payload, "aun sin contacto"),
       localizado: parseCount(payload, "localizados"),
-    };
+    });
   }
 
   if (payload?.data?.content && typeof payload.data.content === "string") {
@@ -37,6 +33,13 @@ function normalizar(payload) {
     sinContacto: parseIntStrict(sinContacto, "sinContacto"),
     localizado: parseIntStrict(localizado, "localizado"),
   };
+  return validar(cifras);
+}
+
+function validar(cifras) {
+  if (cifras.total <= 0) {
+    throw new Error("cifras en cero");
+  }
   if (cifras.sinContacto + cifras.localizado !== cifras.total) {
     // ponytail: contrato actual de 3 estados. Si aparece otro estado, ampliar aqui.
     throw new Error("cifras inconsistentes");
@@ -65,7 +68,7 @@ async function handler(req, res) {
       headers[process.env.STATS_AUTH_HEADER] = process.env.STATS_AUTH_VALUE;
     }
 
-    const r = await fetch(freshUrl(process.env.STATS_URL), { headers, cache: "no-store" });
+    const r = await fetch(process.env.STATS_URL, { headers, cache: "no-store" });
     if (!r.ok) return res.status(502).json({ error: `fuente devolvio ${r.status}` });
 
     const body = await r.text();
@@ -95,6 +98,12 @@ if (require.main === module) {
   console.assert(outText.total === 57218 && outText.sinContacto === 49497, "normaliza texto");
   const outJina = normalizar({ data: { content: text } });
   console.assert(outJina.total === 57218 && outJina.localizado === 7721, "normaliza jina");
+  try {
+    normalizar("0 Personas reportadas\n\n0 Aun sin contacto\n\n0 Localizados");
+    throw new Error("debe rechazar cero");
+  } catch (error) {
+    if (error.message === "debe rechazar cero") throw error;
+  }
   try {
     normalizar({ total: 10, sinContacto: 8, localizado: 1 });
     throw new Error("debe rechazar cifras inconsistentes");
