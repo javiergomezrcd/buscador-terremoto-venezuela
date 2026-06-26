@@ -73,11 +73,10 @@
 <footer>Datos de pacientes: registro oficial. Esta página solo facilita la búsqueda y enlaza a los canales oficiales. No difunde datos de contacto.</footer>
 
 <script>
-const D = {"total": 48620, "sinContacto": 43332, "localizados": 5288, "supaUrl": "https://ghswopasaynslycpaldj.supabase.co/rest/v1", "supaKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdoc3dvcGFzYXluc2x5Y3BhbGRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0MDU0MDcsImV4cCI6MjA5Nzk4MTQwN30.MifuBb6C54KQdhuv_4gMoNAGJl997ycU299OcFeoyzU"};
+const D = {"supaUrl": "https://ghswopasaynslycpaldj.supabase.co/rest/v1", "supaKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdoc3dvcGFzYXluc2x5Y3BhbGRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0MDU0MDcsImV4cCI6MjA5Nzk4MTQwN30.MifuBb6C54KQdhuv_4gMoNAGJl997ycU299OcFeoyzU"};
 let PAC = [];
 function norm(s){return (s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperCase();}
 function setN(id,v){document.getElementById(id).textContent=(v??0).toLocaleString("es-ES");}
-setN("k-desap",D.total);setN("k-sc",D.sinContacto);setN("k-loc",D.localizados);
 
 const CIFRAS_LIVE_URL="https://webpublica.vercel.app/api/cifras-public";
 function parseCount(text,label){
@@ -107,7 +106,8 @@ function pintarCifras(c){
 }
 async function cargarCifras(){
   try{
-    const r=await fetch(CIFRAS_LIVE_URL+"?t="+Date.now(),{cache:"no-store"});
+    document.getElementById("cifras-upd").textContent="Cargando cifras de desaparecidos...";
+    const r=await fetch(CIFRAS_LIVE_URL);
     const body=await r.text();
     let raw=body;
     try{raw=JSON.parse(body);}catch(e){}
@@ -115,7 +115,7 @@ async function cargarCifras(){
     if([c.desaparecidos,c.sinContacto,c.localizados].every(Number.isFinite)){pintarCifras(c);return;}
     throw new Error("cifras incompletas");
   }catch(e){
-    try{pintarCifras(await (await fetch("cifras.json?t="+Date.now(),{cache:"no-store"})).json());}catch(_){}
+    document.getElementById("cifras-upd").textContent="No se pudieron cargar las cifras en vivo. Reintentando...";
   }
 }
 cargarCifras();
