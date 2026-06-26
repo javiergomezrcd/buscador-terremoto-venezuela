@@ -76,17 +76,44 @@ function norm(s){return (s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperC
 function setN(id,v){document.getElementById(id).textContent=(v??0).toLocaleString("es-ES");}
 setN("k-desap",D.total);setN("k-sc",D.sinContacto);setN("k-loc",D.localizados);
 
-// Cifras de desaparecidos desde cifras.json. Lo actualiza el Action cada 6h
-// si STATS_URL apunta a un endpoint autorizado de solo agregados.
+const CIFRAS_LIVE_URL="https://webpublica.vercel.app/api/cifras-public";
+function parseCount(text,label){
+  const s=(text||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+  const m=s.match(new RegExp("(\\d[\\d., ]*)\\s+"+label));
+  return m?Number(m[1].replace(/\D/g,"")):null;
+}
+function normalizarCifras(raw){
+  const text=typeof raw==="string"?raw:raw?.data?.content;
+  if(text){
+    return {
+      desaparecidos:parseCount(text,"personas reportadas"),
+      sinContacto:parseCount(text,"aun sin contacto"),
+      localizados:parseCount(text,"localizados"),
+      fuente:"desaparecidosterremotovenezuela.com via r.jina.ai",
+      actualizado:new Date().toLocaleString("es-ES")
+    };
+  }
+  return raw||{};
+}
+function pintarCifras(c){
+  if(Number.isFinite(c.desaparecidos)){setN("k-desap",c.desaparecidos);}
+  if(Number.isFinite(c.sinContacto)){setN("k-sc",c.sinContacto);}
+  if(Number.isFinite(c.localizados)){setN("k-loc",c.localizados);}
+  if(c.actualizado){document.getElementById("cifras-upd").textContent=
+    "Cifras de desaparecidos: "+c.actualizado+(c.fuente?" · fuente: "+c.fuente:"");}
+}
 async function cargarCifras(){
   try{
-    const c=await (await fetch("cifras.json?t="+Date.now(),{cache:"no-store"})).json();
-    if(Number.isFinite(c.desaparecidos)){setN("k-desap",c.desaparecidos);}
-    if(Number.isFinite(c.sinContacto)){setN("k-sc",c.sinContacto);}
-    if(Number.isFinite(c.localizados)){setN("k-loc",c.localizados);}
-    if(c.actualizado){document.getElementById("cifras-upd").textContent=
-      "Cifras de desaparecidos: "+c.actualizado+(c.fuente?" · fuente: "+c.fuente:"");}
-  }catch(e){}
+    const r=await fetch(CIFRAS_LIVE_URL+"?t="+Date.now(),{cache:"no-store"});
+    const body=await r.text();
+    let raw=body;
+    try{raw=JSON.parse(body);}catch(e){}
+    const c=normalizarCifras(raw);
+    if([c.desaparecidos,c.sinContacto,c.localizados].every(Number.isFinite)){pintarCifras(c);return;}
+    throw new Error("cifras incompletas");
+  }catch(e){
+    try{pintarCifras(await (await fetch("cifras.json?t="+Date.now(),{cache:"no-store"})).json());}catch(_){}
+  }
 }
 cargarCifras();
 setInterval(cargarCifras,300000);
