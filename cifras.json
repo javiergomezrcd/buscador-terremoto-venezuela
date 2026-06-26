@@ -1,8 +1,8 @@
 {
-  "desaparecidos": 57284,
-  "sinContacto": 49540,
-  "localizados": 7744,
-  "actualizado": "2026-06-26T08:45:33.282Z",
+  "desaparecidos": 59483,
+  "sinContacto": 50809,
+  "localizados": 8674,
+  "actualizado": "2026-06-26 16:09 CEST",
   "fuente": "desaparecidosterremotovenezuela.com via r.jina.ai",
-  "nota": "Snapshot de respaldo. La web consulta /api/cifras-public en vivo."
+  "nota": "Actualizado automaticamente desde endpoint autorizado de agregados."
 }
