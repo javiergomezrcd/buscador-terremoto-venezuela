@@ -60,3 +60,14 @@ Mientras no exista el endpoint de agregados:
 4. Commit. En torno a 1 minuto GitHub Pages muestra las cifras nuevas.
 
 > Pacientes en hospital se actualizan solos desde el registro oficial de pacientes.
+
+## Cruce de sin contacto contra hospitales
+
+Para operadores, no publico:
+
+```powershell
+python cruzar_sin_contacto_hospitales.py
+```
+
+Genera `cruces_sin_contacto_hospitales.csv` con posibles coincidencias. Hay que revisarlo
+manualmente antes de contactar familias; nombres comunes dan falsos positivos.
