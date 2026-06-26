@@ -1,8 +1,8 @@
 {
-  "desaparecidos": 48620,
-  "sinContacto": 43332,
-  "localizados": 5288,
-  "actualizado": "25-jun-2026 (snapshot)",
+  "desaparecidos": 57131,
+  "sinContacto": 49486,
+  "localizados": 7645,
+  "actualizado": "26-jun-2026",
   "fuente": "desaparecidosterremotovenezuela.com",
   "nota": "Para actualizar: resolver el captcha en la web oficial, copiar los numeros y editar este archivo (ver ACTUALIZAR_CIFRAS.md)."
 }
