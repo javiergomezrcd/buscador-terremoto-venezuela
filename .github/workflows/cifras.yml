@@ -1,0 +1,43 @@
+name: actualizar-cifras
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cifras
+  cancel-in-progress: false
+
+jobs:
+  cifras:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: validar script
+        run: |
+          python actualizar_cifras_auto.py --self-check
+          node api/cifras.js --self-check
+      - name: actualizar cifras.json
+        env:
+          VERCEL_API_URL: ${{ secrets.VERCEL_API_URL }}
+          API_SECRET: ${{ secrets.API_SECRET }}
+          STATS_URL: ${{ secrets.STATS_URL }}
+          STATS_TOKEN: ${{ secrets.STATS_TOKEN }}
+          STATS_AUTH_HEADER: ${{ secrets.STATS_AUTH_HEADER }}
+          STATS_AUTH_VALUE: ${{ secrets.STATS_AUTH_VALUE }}
+          STATS_SOURCE_NAME: ${{ secrets.STATS_SOURCE_NAME }}
+        run: python actualizar_cifras_auto.py
+      - name: commit si cambio
+        run: |
+          git config user.name "cifras-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add cifras.json
+          git commit -m "cifras auto $(date -u +%FT%TZ)" || { echo "sin cambios"; exit 0; }
+          git push
