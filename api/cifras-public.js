@@ -2,10 +2,17 @@ const { normalizar } = require("./cifras.js");
 
 const DEFAULT_SOURCE = "https://r.jina.ai/https://desaparecidosterremotovenezuela.com/";
 
+function freshUrl(url) {
+  return `${url}${url.includes("?") ? "&" : "?"}_=${Date.now()}`;
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Cache-Control", "no-store, max-age=0");
+  res.setHeader("CDN-Cache-Control", "no-store");
+  res.setHeader("Vercel-CDN-Cache-Control", "no-store");
 
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "GET") {
@@ -14,7 +21,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const r = await fetch(process.env.STATS_URL || DEFAULT_SOURCE, {
+    const r = await fetch(freshUrl(process.env.STATS_URL || DEFAULT_SOURCE), {
       headers: { Accept: "application/json", "User-Agent": "cifras-public/1.0" },
       cache: "no-store",
     });

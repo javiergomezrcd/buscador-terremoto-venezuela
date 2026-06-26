@@ -4,6 +4,10 @@ function parseIntStrict(value, name) {
   return n;
 }
 
+function freshUrl(url) {
+  return `${url}${url.includes("?") ? "&" : "?"}_=${Date.now()}`;
+}
+
 function parseCount(text, label) {
   const normalized = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const match = normalized.match(new RegExp(`(\\d[\\d., ]*)\\s+${label}`));
@@ -61,7 +65,7 @@ async function handler(req, res) {
       headers[process.env.STATS_AUTH_HEADER] = process.env.STATS_AUTH_VALUE;
     }
 
-    const r = await fetch(process.env.STATS_URL, { headers, cache: "no-store" });
+    const r = await fetch(freshUrl(process.env.STATS_URL), { headers, cache: "no-store" });
     if (!r.ok) return res.status(502).json({ error: `fuente devolvio ${r.status}` });
 
     const body = await r.text();
