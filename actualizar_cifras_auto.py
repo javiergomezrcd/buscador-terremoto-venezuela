@@ -76,7 +76,12 @@ def validar(cifras):
 
 
 def fetch_json(url):
-    headers = {"Accept": "application/json", "User-Agent": "cifras-gh-action/1.0"}
+    headers = {
+        "Accept": "application/json",
+        "User-Agent": "cifras-gh-action/1.0",
+        "X-No-Cache": "true",
+        "X-Timeout": "30",
+    }
     token = os.environ.get("STATS_TOKEN", "").strip()
     if token:
         headers["Authorization"] = f"Bearer {token}"

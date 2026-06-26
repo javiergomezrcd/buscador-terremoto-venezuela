@@ -62,7 +62,12 @@ async function handler(req, res) {
   }
 
   try {
-    const headers = { Accept: "application/json", "User-Agent": "cifras-vercel/1.0" };
+    const headers = {
+      Accept: "application/json",
+      "User-Agent": "cifras-vercel/1.0",
+      "X-No-Cache": "true",
+      "X-Timeout": "30",
+    };
     if (process.env.STATS_TOKEN) headers.Authorization = `Bearer ${process.env.STATS_TOKEN}`;
     if (process.env.STATS_AUTH_HEADER && process.env.STATS_AUTH_VALUE) {
       headers[process.env.STATS_AUTH_HEADER] = process.env.STATS_AUTH_VALUE;

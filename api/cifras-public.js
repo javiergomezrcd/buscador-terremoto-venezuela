@@ -18,7 +18,12 @@ module.exports = async function handler(req, res) {
 
   try {
     const r = await fetch(process.env.STATS_URL || DEFAULT_SOURCE, {
-      headers: { Accept: "application/json", "User-Agent": "cifras-public/1.0" },
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "cifras-public/1.0",
+        "X-No-Cache": "true",
+        "X-Timeout": "30",
+      },
       cache: "no-store",
     });
     if (!r.ok) return res.status(502).json({ error: `fuente devolvio ${r.status}` });
