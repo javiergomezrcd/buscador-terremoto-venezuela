@@ -48,6 +48,7 @@
     <div class="kpi ok"><div class="n" id="k-loc">—</div><div class="l">Localizados</div></div>
     <div class="kpi live"><div class="n" id="k-pac">…</div><div class="l">Pacientes en hospital (vivo)</div></div>
   </div>
+  <p class="muted" id="cifras-upd"></p>
 
   <div class="card">
     <h2><span class="dot"></span> ¿Está esta persona en un hospital?</h2>
@@ -74,6 +75,20 @@ let PAC = [];
 function norm(s){return (s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperCase();}
 function setN(id,v){document.getElementById(id).textContent=(v??0).toLocaleString("es-ES");}
 setN("k-desap",D.total);setN("k-sc",D.sinContacto);setN("k-loc",D.localizados);
+
+// Cifras de desaparecidos desde cifras.json (su API exige reCAPTCHA, que NO se salta;
+// se refresca a mano resolviendo el captcha en la web oficial y editando cifras.json).
+async function cargarCifras(){
+  try{
+    const c=await (await fetch("cifras.json?t="+Date.now(),{cache:"no-store"})).json();
+    if(c.desaparecidos){setN("k-desap",c.desaparecidos);}
+    if(c.sinContacto){setN("k-sc",c.sinContacto);}
+    if(c.localizados){setN("k-loc",c.localizados);}
+    if(c.actualizado){document.getElementById("cifras-upd").textContent=
+      "Cifras de desaparecidos: "+c.actualizado+(c.fuente?" · fuente: "+c.fuente:"");}
+  }catch(e){}
+}
+cargarCifras();
 
 async function cargar(){
   try{
