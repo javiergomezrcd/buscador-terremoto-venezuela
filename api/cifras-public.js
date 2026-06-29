@@ -1,5 +1,13 @@
 const { normalizar } = require("./cifras.js");
 
+// Fallback: cifras.json (numeros manuales AUTORIZADOS). Se empaqueta con la funcion.
+let fallback = null;
+try {
+  fallback = require("../cifras.json");
+} catch {
+  fallback = null;
+}
+
 const DEFAULT_SOURCE = "https://r.jina.ai/https://desaparecidosterremotovenezuela.com/";
 
 module.exports = async function handler(req, res) {
@@ -16,6 +24,8 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: "metodo no permitido" });
   }
 
+  // 1) Intento en vivo (via r.jina.ai). Si la fuente esta tras reCAPTCHA o cambia el
+  //    texto, falla: NO reventamos (no mas 500) -> caemos al cifras.json autorizado.
   try {
     const r = await fetch(process.env.STATS_URL || DEFAULT_SOURCE, {
       headers: {
@@ -26,14 +36,14 @@ module.exports = async function handler(req, res) {
       },
       cache: "no-store",
     });
-    if (!r.ok) return res.status(502).json({ error: `fuente devolvio ${r.status}` });
+    if (!r.ok) throw new Error(`fuente devolvio ${r.status}`);
 
     const body = await r.text();
     let raw = body;
     try {
       raw = JSON.parse(body);
     } catch {
-      // r.jina.ai tambien puede responder markdown plano.
+      // r.jina.ai puede responder markdown plano.
     }
     const c = normalizar(raw);
     return res.status(200).json({
@@ -41,10 +51,22 @@ module.exports = async function handler(req, res) {
       sinContacto: c.sinContacto,
       localizados: c.localizado,
       actualizado: new Date().toISOString(),
-      fuente: "desaparecidosterremotovenezuela.com via r.jina.ai",
+      fuente: "desaparecidosterremotovenezuela.com (en vivo)",
+      origen: "vivo",
     });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "error obteniendo cifras" });
+    // 2) Fallback autorizado: cifras.json (lo edita un humano tras resolver el captcha).
+    console.error("cifras en vivo no disponibles, uso cifras.json:", error.message);
+    if (fallback && fallback.desaparecidos) {
+      return res.status(200).json({
+        desaparecidos: fallback.desaparecidos,
+        sinContacto: fallback.sinContacto,
+        localizados: fallback.localizados,
+        actualizado: fallback.actualizado || null,
+        fuente: fallback.fuente || "desaparecidosterremotovenezuela.com",
+        origen: "manual",
+      });
+    }
+    return res.status(503).json({ error: "cifras no disponibles ahora mismo" });
   }
 };
