@@ -1,8 +1,9 @@
 name: actualizar-cifras
 
+# OJO: sin cron. El token reCAPTCHA v3 caduca en ~2 min, asi que un run programado
+# siempre llegaria con el token muerto -> fallo. Solo disparo manual (y aun asi necesita
+# un token recien generado). El flujo fiable es editar cifras.json a mano (3 numeros).
 on:
-  schedule:
-    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 permissions:
