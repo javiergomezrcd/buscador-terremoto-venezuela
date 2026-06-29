@@ -1,14 +1,14 @@
-const { normalizar } = require("./cifras.js");
+// Fuente EN VIVO: endpoint oficial de metricas agregadas (sin reCAPTCHA, sin PII).
+// El CORS bloquea al navegador, pero esta funcion corre server-side -> sin problema.
+const METRICAS = "https://desaparecidos-terremoto-api.theempire.tech/api/metricas";
 
-// Fallback: cifras.json (numeros manuales AUTORIZADOS). Se empaqueta con la funcion.
+// Fallback: cifras.json (ultimos numeros conocidos). Se empaqueta con la funcion.
 let fallback = null;
 try {
   fallback = require("../cifras.json");
 } catch {
   fallback = null;
 }
-
-const DEFAULT_SOURCE = "https://r.jina.ai/https://desaparecidosterremotovenezuela.com/";
 
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -24,39 +24,32 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: "metodo no permitido" });
   }
 
-  // 1) Intento en vivo (via r.jina.ai). Si la fuente esta tras reCAPTCHA o cambia el
-  //    texto, falla: NO reventamos (no mas 500) -> caemos al cifras.json autorizado.
+  // 1) En vivo desde /api/metricas (agregados oficiales, sin captcha).
   try {
-    const r = await fetch(process.env.STATS_URL || DEFAULT_SOURCE, {
+    const r = await fetch(METRICAS, {
       headers: {
         Accept: "application/json",
-        "User-Agent": "cifras-public/1.0",
-        "X-No-Cache": "true",
-        "X-Timeout": "30",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+          + "(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
       },
       cache: "no-store",
     });
-    if (!r.ok) throw new Error(`fuente devolvio ${r.status}`);
-
-    const body = await r.text();
-    let raw = body;
-    try {
-      raw = JSON.parse(body);
-    } catch {
-      // r.jina.ai puede responder markdown plano.
-    }
-    const c = normalizar(raw);
+    if (!r.ok) throw new Error(`metricas devolvio ${r.status}`);
+    const d = await r.json();
+    const g = d.geo || {};
+    if (!g.totalPersonas) throw new Error("metricas sin totalPersonas");
     return res.status(200).json({
-      desaparecidos: c.total,
-      sinContacto: c.sinContacto,
-      localizados: c.localizado,
-      actualizado: new Date().toISOString(),
-      fuente: "desaparecidosterremotovenezuela.com (en vivo)",
+      desaparecidos: g.totalPersonas,
+      sinContacto: g.sinContacto,
+      localizados: g.localizados,
+      localizadosHospital: g.localizadosHospital,
+      actualizado: d.lastUpdatedAt ? new Date(d.lastUpdatedAt).toISOString() : new Date().toISOString(),
+      fuente: "desaparecidosterremotovenezuela.com/api/metricas",
       origen: "vivo",
     });
   } catch (error) {
-    // 2) Fallback autorizado: cifras.json (lo edita un humano tras resolver el captcha).
-    console.error("cifras en vivo no disponibles, uso cifras.json:", error.message);
+    // 2) Fallback: ultimos numeros conocidos (cifras.json).
+    console.error("metricas no disponible, uso cifras.json:", error.message);
     if (fallback && fallback.desaparecidos) {
       return res.status(200).json({
         desaparecidos: fallback.desaparecidos,

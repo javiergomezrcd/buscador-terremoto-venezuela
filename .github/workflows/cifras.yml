@@ -1,9 +1,10 @@
 name: actualizar-cifras
 
-# OJO: sin cron. El token reCAPTCHA v3 caduca en ~2 min, asi que un run programado
-# siempre llegaria con el token muerto -> fallo. Solo disparo manual (y aun asi necesita
-# un token recien generado). El flujo fiable es editar cifras.json a mano (3 numeros).
+# Fuente: /api/metricas (agregados oficiales, SIN reCAPTCHA, SIN token). Server-side,
+# asi que el CORS no afecta. Ahora SI funciona en cron (no depende de tokens caducos).
 on:
+  schedule:
+    - cron: "*/30 * * * *"   # cada 30 min (metricas se refresca cada 5)
   workflow_dispatch:
 
 permissions:
@@ -21,20 +22,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - name: validar script
-        run: |
-          python actualizar_cifras_auto.py --self-check
-          node api/cifras.js --self-check
-      - name: actualizar cifras.json
-        env:
-          VERCEL_API_URL: ${{ secrets.VERCEL_API_URL }}
-          API_SECRET: ${{ secrets.API_SECRET }}
-          STATS_URL: ${{ secrets.STATS_URL }}
-          STATS_TOKEN: ${{ secrets.STATS_TOKEN }}
-          STATS_AUTH_HEADER: ${{ secrets.STATS_AUTH_HEADER }}
-          STATS_AUTH_VALUE: ${{ secrets.STATS_AUTH_VALUE }}
-          STATS_SOURCE_NAME: ${{ secrets.STATS_SOURCE_NAME }}
-        run: python actualizar_cifras_auto.py
+      - name: actualizar cifras.json desde /api/metricas
+        run: python actualizar_cifras.py
       - name: commit si cambio
         run: |
           git config user.name "cifras-bot"

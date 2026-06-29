@@ -1,8 +1,8 @@
 {
-  "desaparecidos": 59483,
-  "sinContacto": 50809,
-  "localizados": 8674,
-  "actualizado": "2026-06-26 16:09 CEST",
-  "fuente": "desaparecidosterremotovenezuela.com via r.jina.ai",
-  "nota": "Actualizado automaticamente desde endpoint autorizado de agregados."
+  "desaparecidos": 61777,
+  "sinContacto": 46645,
+  "localizados": 15132,
+  "localizadosHospital": 510,
+  "actualizado": "2026-06-29 09:15 UTC",
+  "fuente": "desaparecidosterremotovenezuela.com/api/metricas"
 }
