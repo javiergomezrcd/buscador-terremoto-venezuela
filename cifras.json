@@ -1,8 +1,8 @@
 {
-  "desaparecidos": 51461,
-  "sinContacto": 36198,
-  "localizados": 15263,
+  "desaparecidos": 51477,
+  "sinContacto": 36176,
+  "localizados": 15301,
   "localizadosHospital": 1231,
-  "actualizado": "2026-07-03 14:35 UTC",
+  "actualizado": "2026-07-03 16:20 UTC",
   "fuente": "desaparecidosterremotovenezuela.com/api/metricas"
 }
