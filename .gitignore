@@ -1,2 +1,9 @@
 .vercel
 cruces_sin_contacto_hospitales.csv
+.env
+.env.*
+*.pem
+*.key
+node_modules/
+__pycache__/
+*.pyc
