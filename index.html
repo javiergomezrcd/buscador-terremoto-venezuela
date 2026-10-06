@@ -76,6 +76,7 @@
 const D = {"supaUrl": "https://ghswopasaynslycpaldj.supabase.co/rest/v1", "supaKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdoc3dvcGFzYXluc2x5Y3BhbGRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0MDU0MDcsImV4cCI6MjA5Nzk4MTQwN30.MifuBb6C54KQdhuv_4gMoNAGJl997ycU299OcFeoyzU"};
 let PAC = [];
 function norm(s){return (s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperCase();}
+function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function setN(id,v){document.getElementById(id).textContent=(v??0).toLocaleString("es-ES");}
 
 const CIFRAS_LIVE_URL="https://webpublica.vercel.app/api/cifras-public";
@@ -149,7 +150,7 @@ function buscar(){
   const h=PAC.filter(p=>norm((p.apellido||"")+" "+(p.nombre||"")).includes(q)).slice(0,200);
   if(!h.length){res.innerHTML=`<p class="muted" style="padding:12px">Sin resultados. Puede no estar en ningún hospital del registro.</p>`;return;}
   res.innerHTML=`<table><thead><tr><th>Paciente</th><th>Hospital</th><th>Estado</th><th>Edad</th></tr></thead><tbody>`+
-    h.map(p=>`<tr><td><b>${(p.apellido||"")} ${(p.nombre||"")}</b></td><td>${p.hospital||""}</td><td>${p.estado||""}</td><td>${p.edad||""}</td></tr>`).join("")+`</tbody></table>`;
+    h.map(p=>`<tr><td><b>${esc(p.apellido)} ${esc(p.nombre)}</b></td><td>${esc(p.hospital||"")}</td><td>${esc(p.estado||"")}</td><td>${esc(p.edad||"")}</td></tr>`).join("")+`</tbody></table>`;
 }
 document.getElementById("q").addEventListener("input",buscar);
 cargar();setInterval(cargar,60000);
